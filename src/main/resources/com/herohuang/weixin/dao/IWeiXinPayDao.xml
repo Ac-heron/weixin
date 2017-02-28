@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.herohuang.weixin.dao.IWeiXinPayDao">
+	
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>	
+    
+     <resultMap id="fullOrgMap" type="Org">
+		<id property="id" column="ID" />
+		<result property="fatherId" column="FATHER_ID" />
+		<result property="name" column="NAME" />
+		<result property="phonePublic" column="PHONE_PUBLIC" />
+		<result property="phoneOverseee" column="PHONE_OVERSEEE" />
+		<result property="address" column="ADDRESS" />
+		<result property="zipcode" column="ZIPCODE" />
+		<result property="website" column="WEBSITE" />
+		<result property="email" column="EMAIL" />
+		<result property="workDuty" column="WORK_DUTY" />
+		<result property="nature" column="NATURE" />
+		<result property="sortNum" column="SORT_NUM" />
+	</resultMap>
+	
+	<select id="selectInfo" resultMap="fullOrgMap"  useCache="false">
+		SELECT
+			*
+		FROM
+			U_ORG 
+	</select>
+	
+	<select id="count" resultType="java.lang.Integer" parameterType="string">
+		SELECT
+			COUNT(*) as num
+		FROM
+			U_ORG 
+		WHERE 
+			FATHER_ID=#{id} 
+	</select>
+	
+	<select id="select" resultType="Org" parameterType="string">
+		SELECT
+			ID AS id,
+			FATHER_ID AS fatherId,
+			NAME AS name,
+			PHONE_PUBLIC AS phonePublic,
+			PHONE_OVERSEEE AS phoneOverseee,
+			ADDRESS AS address,
+			ZIPCODE AS zipcode,
+			WEBSITE AS website,
+			EMAIL AS email,
+			WORK_DUTY AS workDuty,
+			NATURE AS nature,
+			SORT_NUM AS sortNum
+		FROM
+			U_ORG 
+		WHERE 
+			ID=#{id} 
+	</select>
+	
+	<insert id="insert" parameterType="Org">
+		INSERT INTO U_ORG  (
+			ID,
+			FATHER_ID,
+			NAME,
+			PHONE_PUBLIC,
+			PHONE_OVERSEEE,
+			ADDRESS,
+			ZIPCODE,
+			WEBSITE,
+			EMAIL,
+			WORK_DUTY,
+			NATURE,
+			SORT_NUM
+		) VALUES (
+			#{id, jdbcType=VARCHAR},
+			#{fatherId, jdbcType=VARCHAR},
+			#{name, jdbcType=VARCHAR},
+			#{phonePublic, jdbcType=VARCHAR},
+			#{phoneOverseee, jdbcType=VARCHAR},
+			#{address, jdbcType=VARCHAR},
+			#{zipcode, jdbcType=VARCHAR},
+			#{website, jdbcType=VARCHAR},
+			#{email, jdbcType=VARCHAR},
+			#{workDuty, jdbcType=CLOB},
+			#{nature, jdbcType=VARCHAR},
+			#{sortNum, jdbcType=NUMERIC}
+		)
+	</insert>
+	
+	<update id="update" parameterType="Org">
+		UPDATE 
+			U_ORG  
+		SET
+			ID = #{id, jdbcType=VARCHAR},
+			FATHER_ID = #{fatherId, jdbcType=VARCHAR},
+			NAME = #{name, jdbcType=VARCHAR},
+			PHONE_PUBLIC = #{phonePublic, jdbcType=VARCHAR},
+			PHONE_OVERSEEE = #{phoneOverseee, jdbcType=VARCHAR},
+			ADDRESS = #{address, jdbcType=VARCHAR},
+			ZIPCODE = #{zipcode, jdbcType=VARCHAR},
+			WEBSITE = #{website, jdbcType=VARCHAR},
+			EMAIL = #{email, jdbcType=VARCHAR},
+			WORK_DUTY = #{workDuty, jdbcType=CLOB},
+			NATURE = #{nature, jdbcType=VARCHAR},
+			SORT_NUM = #{sortNum, jdbcType=NUMERIC}
+    	WHERE 
+    		ID = #{id} 
+	</update>
+	
+	<delete id="delete" parameterType="string">
+		DELETE FROM 
+			U_ORG 
+		WHERE 
+		<choose>
+			<when test="_parameter.indexOf(',') != -1">
+				ID = 'NONE'
+			<foreach item="item" collection="_parameter.split(',')">
+				OR ID = #{item}
+			</foreach>
+			</when>
+			<otherwise>
+				ID = #{_parameter}
+			</otherwise>
+		</choose>
+	</delete>
+
+	<select id="listPage" resultMap="fullOrgMap">
+		SELECT 
+			ID AS id,
+			NAME AS name ,
+			PHONE_PUBLIC AS phonePublic ,
+			PHONE_OVERSEEE AS phoneOverseee ,
+			ADDRESS AS address ,
+			ZIPCODE AS zipcode ,
+			WEBSITE AS website ,
+			EMAIL AS email ,
+			NATURE AS nature 
+		FROM 
+			U_ORG  
+		<where>
+			<if test="search.id != null and search.id != '' ">
+				AND ID LIKE CONCAT(#{search.id}, '%') 
+			</if>
+			<if test="search.name != null and search.name != '' ">
+				AND NAME LIKE CONCAT(CONCAT('%',#{search.name}),'%')
+			</if>
+			<if test="search.email != null and search.email != '' ">
+				AND EMAIL LIKE CONCAT(CONCAT('%',#{search.email}),'%')
+			</if>
+			<if test="search.nature != null and search.nature != '' ">
+				AND NATURE = #{search.nature}
+			</if>
+		</where>
+		<if test="collates != null and collates.size > 0">
+			<foreach item="item" collection="collates" 
+                        open="ORDER BY" separator=",">
+                       ${item.sortField} ${item.sortType}
+           </foreach>
+		</if>
+	</select>
+	
+	<select id="selectAll" resultMap="fullOrgMap">
+	  select 
+	  	* 
+	   <include refid="selectOrgSQL"/>
+	</select>
+	
+	<select id="selectAllCount" resultType="int" >
+	  select 
+	  	count(*) 
+	   <include refid="selectOrgSQL"/>
+	</select>
+	
+	<sql id="selectOrgSQL">
+		FROM 
+			U_ORG  
+		WHERE 1=1
+		    <if test="search.id !=null">
+		       AND ID = #{search.id} 
+		    </if>
+			<if test="search.name != null and search.name != '' ">
+				AND NAME LIKE CONCAT(CONCAT('%',#{search.name}),'%')
+			</if>
+			<if test="search.email != null and search.email != '' ">
+				AND EMAIL LIKE CONCAT(CONCAT('%',#{search.email}),'%')
+			</if>
+			<if test="search.nature != null and search.nature != '' ">
+				AND NATURE = #{search.nature}
+			</if>
+			<if test="search.groupid!=null">
+				AND ID in (select u.ORG_ID from U_GROUP_ORG u where u.GROUP_ID=#{search.groupid}) 
+			</if>
+			<if test="search.fatherid!=null">
+				AND FATHER_ID=#{search.fatherid} 
+			</if>
+			<if test="search.likeorgid!=null">
+			    AND ID like #{search.likeorgid}
+			</if>
+			<if test="collates != null and collates.size > 0">
+			<foreach item="item" collection="collates" 
+                         open="ORDER BY" separator=",">
+                        ${item.sortField} ${item.sortType}
+            </foreach>
+			</if>
+	</sql>
+	
+	
+	
+</mapper>
