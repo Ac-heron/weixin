@@ -1,4 +1,4 @@
-package com.wmchoice.customer;
+package com.herohuang;
 
 import com.herohuang.weixin.bean.AccessToken;
 import com.herohuang.weixin.util.WeixinUtil;
